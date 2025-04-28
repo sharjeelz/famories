@@ -1,1 +1,5 @@
 .env
+data/family.json
+data/food_log.json
+data/memories.json
+data/family_photos/*
