@@ -19,9 +19,9 @@ api_key = os.getenv("OPENAI_API_KEY")
 # Optional: Print to check (only for debugging, not in production!)
 # print("API Key:", api_key[:5] + "..." if api_key else "Not found")
 
-MEMORY_FILE = "data\\memories.json"
-FAMILY_FILE = "data\\family.json"
-FOOD_LOG_FILE = "data\\food_log.json"
+MEMORY_FILE = "data/memories.json"
+FAMILY_FILE = "data/family.json"
+FOOD_LOG_FILE = "data/food_log.json"
 FAMILY_PHOTO_DIR = "data\\family_photos"
 
 os.makedirs("data", exist_ok=True)
