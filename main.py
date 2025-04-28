@@ -278,7 +278,8 @@ elif menu == "Family Info":
                 cols = st.columns([1, 2])
                 with cols[0]:
                     if f.get("photo"):
-                        st.image(f["photo"], width=100)
+                       safe_path = f["photo"].replace("\\", "/")
+                       st.image(safe_path, width=100)
                 with cols[1]:
                     st.markdown(f"**Name:** {f['name']}")
                     st.markdown(f"**Relation:** {f['relation']}")
