@@ -22,7 +22,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 MEMORY_FILE = "data/memories.json"
 FAMILY_FILE = "data/family.json"
 FOOD_LOG_FILE = "data/food_log.json"
-FAMILY_PHOTO_DIR = r"data\family_photos"
+FAMILY_PHOTO_DIR = "data\\family_photos".replace("\\", "/")
 
 os.makedirs("data", exist_ok=True)
 os.makedirs(FAMILY_PHOTO_DIR, exist_ok=True)
