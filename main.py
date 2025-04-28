@@ -91,8 +91,8 @@ if not st.session_state.authenticated:
         else:
             st.error("Incorrect PIN")
     st.stop()  # 🚫 Stop app here if not authenticated
-menu = st.sidebar.selectbox("Menu", ["Talk to My Past","Add Memory", "View/Edit Memory", "Family Info","Life Insights", "About"])
-if menu == "Talk to My Past":
+menu = st.sidebar.selectbox("Menu", ["Talk with me","Add Memory", "View/Edit Memory", "Family Info","Life Insights", "About"])
+if menu == "Talk with me":
     st.header("🗣️ Talk to Your Past Self")
     memories = load_memories()
 
