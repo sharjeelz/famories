@@ -76,7 +76,21 @@ delete_food_log = lambda item_id: delete_data(FOOD_LOG_FILE, item_id)
 # UI - Streamlit App
 st.set_page_config(page_title="Memory AI", layout="centered")
 st.title("🧠 Personal Memory Logger")
+APP_PIN = os.getenv("APP_PIN", "1234")  # fallback default
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
+if not st.session_state.authenticated:
+    st.title("🔒 Enter PIN to Access App")
+    pin_input = st.text_input("Enter PIN", type="password")
+    if st.button("Unlock"):
+        if pin_input == APP_PIN:
+            st.session_state.authenticated = True
+            st.success("Access granted!")
+            st.rerun()
+        else:
+            st.error("Incorrect PIN")
+    st.stop()  # 🚫 Stop app here if not authenticated
 menu = st.sidebar.selectbox("Menu", ["Talk to My Past","Add Memory", "View/Edit Memory", "Family Info", "Food Log","Life Insights", "About"])
 if menu == "Talk to My Past":
     st.header("🗣️ Talk to Your Past Self")
