@@ -5,3 +5,6 @@ graphviz
 tabulate
 openai
 python-dotenv
+SpeechRecognition
+pydub
+pyaudio

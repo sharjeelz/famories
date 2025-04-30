@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from graphviz import Digraph
 import openai
+import pyaudio
 
 from dotenv import load_dotenv
 
@@ -91,14 +92,24 @@ if not st.session_state.authenticated:
         else:
             st.error("Incorrect PIN")
     st.stop()  # 🚫 Stop app here if not authenticated
-menu = st.sidebar.selectbox("Menu", ["Talk with me","Add Memory", "View/Edit Memory", "Family Info","Life Insights", "About"])
+menu = st.sidebar.selectbox("Menu", ["🎤 Speak a Memory","Talk with me","Add Memory", "View/Edit Memory", "Family Info","Life Insights", "About"])
 if menu == "Talk with me":
     st.header("🗣️ Talk to Your Past Self")
     memories = load_memories()
-
+    family = load_family()
+    id_name_details = {
+    f['name']: {
+        "relation": f.get('relation', 'Unknown'),
+        "age": f.get('age', 'N/A'),
+        "hobbies": ", ".join(f.get('hobbies', [])) or 'None'
+    }
+    for f in family
+}
+    
+    # st.write(id_name_details)
     if memories:
        combined_text = "\n\n".join([
-    f"Title: {m['title']}\nDate: {m['date']}\nDesc: {m['description']}\nEmotions: {', '.join(m['emotion'])}"
+     f"Title: {m['title']}\nDate: {m['date']}\nDesc: {m['description']}\nEmotions: {', '.join(m['emotion'])}\nPeople Involved: {id_name_details}"
     for m in memories
 ])
         
@@ -109,7 +120,7 @@ if menu == "Talk with me":
             response = openai.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": "You are the user's digital memory. Respond as if you are their past self, drawing only from the memory log below."},
+                        {"role": "system", "content": "You are the user's digital memory. Respond as if you are their past self, drawing only from the memory log below. and dont say anything if you dont find the data, simply say did not find what you are looking for, dont tell that you are reading from a log, just be straightforward."},
                         {"role": "user", "content": f"Here are my memories:{combined_text}Question: {user_prompt}"}])
             st.markdown("### 💬 Response")
             st.write( response.choices[0].message.content)
@@ -302,7 +313,59 @@ elif menu == "Family Info":
                 st.markdown("---")
     else:
         st.info("No family members found. Add one above to begin.")
+elif menu == "🎤 Speak a Memory":
+    st.header("🎙️ Record a Memory with Your Voice")
+    
+    import speech_recognition as sr
 
+    recognizer = sr.Recognizer()
+    mic = sr.Microphone()
+
+    with mic as source:
+        st.info("Adjusting for ambient noise... Please wait.")
+        recognizer.adjust_for_ambient_noise(source)
+        st.info("Speak now!")
+        audio = recognizer.listen(source)
+        st.success("Recording complete!")
+
+    try:
+        raw_text = recognizer.recognize_google(audio)
+        st.markdown("**Transcribed Text:**")
+        st.write(raw_text)
+
+        # Categorize using GPT
+        openai.api_key = api_key
+        gpt_response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Categorize the user's memory. Return JSON with: title, emotions (list), tags (list), people (list of names if mentioned), and a short summary."},
+                {"role": "user", "content": f"Memory: {raw_text}"}
+            ]
+        )
+
+        memory_data = json.loads(gpt_response.choices[0].message.content)
+
+        st.markdown("### 📌 Categorized Memory")
+        st.json(memory_data)
+
+        if st.button("Save This Memory"):
+            memory = {
+                "id": str(uuid.uuid4()),
+                "title": memory_data.get("title", "Untitled"),
+                "description": raw_text,
+                "date": str(date.today()),
+                "emotion": memory_data.get("emotions", []),
+                "tags": memory_data.get("tags", []),
+                "people": memory_data.get("people", []),
+                "location": ""  # Optional: leave empty or infer from text
+            }
+            save_memory(memory)
+            st.success("Memory saved successfully!")
+
+    except sr.UnknownValueError:
+        st.error("Sorry, could not understand the audio.")
+    except Exception as e:
+        st.error(f"Error: {e}")
 elif menu == "Food Log":
     st.header("🍽️ Food Reaction Log")
     family = load_family()
