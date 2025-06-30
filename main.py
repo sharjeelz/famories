@@ -92,7 +92,19 @@ if not st.session_state.authenticated:
         else:
             st.error("Incorrect PIN")
     st.stop()  # 🚫 Stop app here if not authenticated
-menu = st.sidebar.selectbox("Menu", ["🎤 Speak a Memory","Talk with me","Add Memory", "View/Edit Memory", "Family Info","Life Insights", "About"])
+menu = st.sidebar.selectbox(
+    "Menu",
+    [
+        "🎤 Speak a Memory",
+        "Talk with me",
+        "Add Memory",
+        "View/Edit Memory",
+        "Family Info",
+        "Family Tree",
+        "Life Insights",
+        "About",
+    ],
+)
 if menu == "Talk with me":
     st.header("🗣️ Talk to Your Past Self")
     memories = load_memories()
@@ -107,25 +119,29 @@ if menu == "Talk with me":
 }
     
     # st.write(id_name_details)
-    if memories:
-       combined_text = "\n\n".join([
-     f"Title: {m['title']}\nDate: {m['date']}\nDesc: {m['description']}\nEmotions: {', '.join(m['emotion'])}\nPeople Involved: {id_name_details}"
-    for m in memories
-])
+    combined_text = "\n\n".join([
+        f"Title: {m['title']}\nDate: {m['date']}\nDesc: {m['description']}\nEmotions: {', '.join(m['emotion'])}\nPeople Involved: {id_name_details}"
+        for m in memories
+    ]) if memories else ""
         
     openai.api_key = api_key
-    user_prompt = st.text_area("📝 Ask your past self something (e.g. 'What did I enjoy most as a child?')")
+    user_prompt = st.text_area(
+        "📝 Ask your past self something (e.g. 'What did I enjoy most as a child?')"
+    )
     if st.button("Talk") and user_prompt:
-        try:
-            response = openai.chat.completions.create(
+        if not memories:
+            st.info("No memories found. Please add some first.")
+        else:
+            try:
+                response = openai.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are the user's digital memory. Respond as if you are their past self, drawing only from the memory log below. and dont say anything if you dont find the data, simply say did not find what you are looking for, dont tell that you are reading from a log, just be straightforward."},
                         {"role": "user", "content": f"Here are my memories:{combined_text}Question: {user_prompt}"}])
-            st.markdown("### 💬 Response")
-            st.write( response.choices[0].message.content)
-        except Exception as e:
-            st.error(f"Failed to get response: {e}")
+                st.markdown("### 💬 Response")
+                st.write(response.choices[0].message.content)
+            except Exception as e:
+                st.error(f"Failed to get response: {e}")
 
 
 
@@ -138,11 +154,10 @@ if menu == "Life Insights":
     if "openai_summary" not in st.session_state:
         st.session_state.openai_summary = None
 
-    if memories:
-       combined_text = "\n\n".join([
-    f"Title: {m['title']}\nDate: {m['date']}\nDesc: {m['description']}\nEmotions: {', '.join(m['emotion'])}"
-    for m in memories
-])
+    combined_text = "\n\n".join([
+        f"Title: {m['title']}\nDate: {m['date']}\nDesc: {m['description']}\nEmotions: {', '.join(m['emotion'])}"
+        for m in memories
+    ]) if memories else ""
         
     openai.api_key = api_key
     try:
